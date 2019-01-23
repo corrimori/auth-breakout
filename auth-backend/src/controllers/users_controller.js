@@ -75,40 +75,50 @@ const getUserByUsername = (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
   // find user in database using username off of request body
+  let {username, password} = req.body
+  console.log('username', username);
 
   // if no match, return eror
+  let user = await model.getUserByUsername(username.toLowerCase())
+  console.log('user', user);
+
+  if (user.error) return next(user)
 
   // if user found, compare payload password with result from getByUsername with bcrypt.js
+  let isValid = await bcrypt.compare( password, user.hashedPassword)
+  console.log('isVal', isValid);
 
   // if password is valid omit password from user response
+  if (isValid) {
+    delete user.hashedPassword
 
-  // create JWT token
-
-  const timeIssued = Math.floor(Date.now() / 1000)
-  const timeExpires = timeIssued + 86400 * 28
-  const token = await signJwt(
-    {
-      iss: 'thatSong',
-      aud: 'thatSong',
-      iat: timeIssued,
-      exp: timeExpires,
-      identity: 'something'
-    },
-    env.JWT_KEY
-  )
+    // create JWT token
+    const timeIssued = Math.floor(Date.now() / 1000)
+    const timeExpires = timeIssued + 86400 * 28
+    const token = await jwt.sign(
+      {
+        iss: 'thatSong',
+        aud: user.username,
+        iat: timeIssued,
+        exp: timeExpires,
+        identity: user.id
+      },
+      env.JWT_KEY
+    )
 
   // attach token to response
+  console.log('token', token);
+  // set the heading in json
   // or attach token via headers (the correct way ;)
-
   // respond with status 200 and user object
-  res.status(200).json(promise)
-
-  //respond with 404 and error message if not found
-
-  promise.catch(error => {
-    next(error)
-  })
+  // res.status(200).json(user)
+  return res.status(200).set('authorization', token).json(user)
+  }
+  //respond with 404 and error message if not foun
+  return next({error: 'username or password is invalid', status: 404})
 }
+
+// put jwt in local storage,  jwt is in the header that can send on frontend
 
 const createUser = async (req, res, next) => {
   let payload = req.body
