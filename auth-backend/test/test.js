@@ -32,7 +32,7 @@ describe('test', () => {
     });
 
     it('should return an array of users', () => {
-      console.log('>>>>', user);
+      // console.log('>>>>', user);
       expect(result).to.be.an('array');
       expect(user.first_name).to.equal('Carl');
     });
@@ -74,7 +74,7 @@ describe('returnOdds()', () => {
     expect(result)
       .to.be.an('array')
       .that.does.not.include(2);
-    expect(result[0].to.equal(1));
+    expect(result[0]).to.equal(1);
     expect(result.length).to.equal(5);
   });
 });
